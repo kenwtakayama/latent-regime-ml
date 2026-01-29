@@ -63,7 +63,7 @@ Interpretation:
 
 ### 4.1 Geometry-Based Baselines
 
-#### 4.1.1 KMeans
+#### KMeans
 
 * Hard clustering in PCA space
 * No uncertainty estimates
@@ -71,7 +71,7 @@ Interpretation:
 
 Used as a minimal baseline.
 
-#### 4.1.2 Gaussian Mixture Model (GMM)
+#### Gaussian Mixture Model (GMM)
 
 * Soft clustering via overlapping Gaussian components
 * Provides per-point cluster membership probabilities
@@ -101,11 +101,11 @@ We mitigate this using a **Dirichlet prior on the transition matrix**, which pen
 
 We implement three simple Supervised Machine Learning models in order to observe their effectiveness in extracting information from a stochastic time-series without overfitting.
 
-#### 4.3.1 Random Forest Classifier
+#### Random Forest Classifier
 
 A standard Random Forest Classifier from scikit-learn is implemented. This serves as a baseline comparison for Supervised Machine Learning models.
 
-#### 4.3.2 XGBoost
+#### XGBoost
 
 XGBClassifier from XGBoost is implemented. Used primarily for comparison with MLP model to observe whether decision trees or neural networks are more effective for processing time-series data.
 
