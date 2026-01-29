@@ -1,8 +1,16 @@
 # Comparing Machine Learning Methods for Latent Regime Detection in Multivariate Time Series
 
+## Overview
+
+This project studies **latent regime detection** in multivariate time series using a synthetic dataset. We compare geometry-based clustering methods, time-aware state-space models, and elementary machine learning models to understand how different modeling assumptions affect regime recovery.
+
+The main focus is **structural inference and recovery**, not prediction or performance.
+
+---
+
 ## 1. Motivation
 
-Many real-world systems generate multivariate time series that exhibit **nonstationarity** and **regime-switching behavior**, where the underlying data-generating process changes over time. Examples include physical systems, biological signals, sensor networks, and economic or financial data.
+Many real-world systems generate multivariate time series that exhibit nonstationarity and regime-switching behavior, where the underlying data-generating process changes over time. Examples include physical systems, biological signals, sensor networks, and economic or financial data.
 
 A central challenge is identifying these latent regimes **without strong domain-specific assumptions**. This project investigates how different machine learning models perform at detecting latent regimes in multivariate time series, with an emphasis on **interpretability**, **robustness**, and **methodological comparison** rather than domain-specific forecasting performance.
 
@@ -18,9 +26,7 @@ The primary goal is to understand *which modeling choices matter*, *what kinds o
 
 ---
 
-## 3. Data
-
-### 3.1 Synthetic Data (Primary Validation)
+## 3. Synthetic Data
 
 To avoid domain-specific assumptions and provide ground truth, we generate synthetic multivariate time series with:
 
@@ -29,41 +35,83 @@ To avoid domain-specific assumptions and provide ground truth, we generate synth
 * Correlated noise across features
 * Stochastic regime transitions
 
-This allows direct evaluation of regime recovery accuracy and robustness under controlled conditions.
+We generate a synthetic multivariate time series with:
 
-### 3.2 Real-World Time Series (Secondary Application)
+* **T time steps**
+* **d = 4 observed features**
+* **3 latent regimes**
 
-After validating models on synthetic data, we apply the same pipeline to a real multivariate time series dataset treated as **anonymous signals**. No domain-specific interpretation is assumed; the data serves only to test generalization behavior.
+Each regime is characterized by a distinct mean and covariance structure. Regimes persist for extended periods before switching, mimicking macroeconomic or financial regimes.
 
-All features are standardized, and sliding-window representations are used where appropriate.
+Ground-truth regime labels are retained *only* for evaluation.
 
 ---
 
-## 4. Methods
+### 3.1 Principal Component Analysis (PCA)
 
-### 4.1 Baseline Approaches
+We apply **Principal Component Analysis (PCA)** to extract low-dimensional latent factors from the observed features.
 
-* Rolling window statistics (mean, variance)
-* Principal Component Analysis (PCA)
-* KMeans clustering on reduced representations
+Interpretation:
 
-### 4.2 Probabilistic Models
+* PCA acts as a proxy for latent macro or market factors
+* reduces noise and feature redundancy
+* preserves temporal ordering.
 
-* Gaussian Mixture Models (GMM)
-* Hidden Markov Models (HMM) with Gaussian emissions
+---
 
-These models explicitly encode latent state structure and transition dynamics.
+## 4. Models and Methods
 
-### 4.3 Supervised and ML Models
+### 4.1 Geometry-Based Baselines
 
-* Logistic regression on windowed features
-* Random Forest classifier
+#### 4.1.1 KMeans
 
-These serve as flexible non-linear baselines without explicit temporal state modeling.
+* Hard clustering in PCA space
+* No uncertainty estimates
+* No temporal structure
+
+Used as a minimal baseline.
+
+#### 4.1.2 Gaussian Mixture Model (GMM)
+
+* Soft clustering via overlapping Gaussian components
+* Provides per-point cluster membership probabilities
+* Still ignores temporal persistence
+
+GMM performs strongly when regime separation is primarily geometric.
+
+---
+
+### 4.2 Time-Aware Model: Hidden Markov Model (HMM)
+
+We implement a **Gaussian HMM**, which models:
+
+* latent regime persistence via a transition matrix
+* regime-specific emission distributions
+
+This introduces an explicit temporal structure absent in clustering models.
+
+#### Observed pathology
+
+Without transition regularization, the HMM may collapse into **oscillatory state sequences**, rapidly alternating between similar states to overfit pointwise noise.
+
+We mitigate this using a **Dirichlet prior on the transition matrix**, which penalizes excessive switching and encourages regime persistence.
+
+
+### 4.3 Supervised ML Models
+
+We implement three simple Supervised Machine Learning models in order to observe their effectiveness in extracting information from a stochastic time-series without overfitting.
+
+#### 4.3.1 Random Forest Classifier
+
+A standard Random Forest Classifier from scikit-learn is implemented. This serves as a baseline comparison for Supervised Machine Learning models.
+
+#### 4.3.2 XGBoost
+
+XGBClassifier from XGBoost is implemented. Used primarily for comparison with MLP model to observe whether decision trees or neural networks are more effective for processing time-series data.
 
 ### 4.4 Shallow Deep Learning
 
-* Multi-layer Perceptron (MLP) implemented in PyTorch
+* Multi-layer Perceptron (MLP) implemented in Sci-kit Learn.
 
 The neural model is intentionally kept shallow to focus on representation learning rather than scale.
 
@@ -71,19 +119,17 @@ The neural model is intentionally kept shallow to focus on representation learni
 
 ## 5. Evaluation
 
-### Synthetic Data
+We evaluate regime recovery using **Adjusted Rand Index (ARI)**, which:
+
+* is invariant to label permutations
+* compares inferred regimes to ground truth
+
+Models are fit and evaluated on the same sequence, as the goal is **latent structure recovery**, not out-of-sample prediction.
+
+Additional metrics used:
 
 * Regime recovery accuracy
-* Adjusted Rand Index (ARI)
 * Transition matrix estimation error
-
-### Real Data
-
-* Regime stability and persistence
-* Consistency across model classes
-* Sensitivity to window size and feature subsets
-
-Ablation studies are used to assess robustness to noise, feature removal, and regime duration.
 
 ---
 
@@ -102,7 +148,17 @@ These analyses help connect learned regimes to observable data characteristics.
 
 ## 7. Results Summary
 
-Across experiments, probabilistic models with explicit state structure perform best at recovering true regimes in synthetic data, while tree-based and neural models provide competitive performance with greater flexibility. Interpretability analyses reveal that regime identification is often driven by variance structure and cross-feature correlations rather than marginal means alone.
+* Geometry-based methods recover strong regime structure when emissions are well separated
+* GMM outperforms KMeans by modeling uncertainty and heteroskedasticity
+* HMMs introduce temporal coherence but require careful regularization
+* Increased model flexibility can reduce performance due to overfitting (bias–variance tradeoff)
+
+These behaviors mirror known challenges in economic and financial regime detection.
+Across experiments, probabilistic models with explicit state structure perform best at recovering true regimes in synthetic data, while tree-based and neural models provide competitive performance with greater flexibility.
+
+### Takeaway
+
+Regime detection is fundamentally a tradeoff between **geometric separation** and **temporal coherence**. Understanding when and why models fail is as important as raw performance.
 
 ---
 
@@ -116,9 +172,9 @@ Across experiments, probabilistic models with explicit state structure perform b
 
 ## 9. Future Work
 
-* Bayesian state-space models
-* Variational inference for regime uncertainty
-* Multiscale temporal modeling
+* apply models to real macro or financial data
+* incorporate regime-dependent dynamics (e.g. AR-HMM)
+* Bayesian HMMs with stronger priors
 * Extension to higher-dimensional and irregularly sampled data
 
 ---
@@ -133,25 +189,54 @@ All experiments are fully reproducible. Random seeds are fixed, and all data gen
 
 ```
 latent-regime-ml/
+├── configs/
+│   ├── easy.yaml
+│   ├── medium.yaml
+│   ├── hard.yaml
 ├── data/
 ├── notebooks/
 │   ├── 01_synthetic_generation.ipynb
 │   ├── 02_exploration.ipynb
 │   ├── 03_baselines.ipynb
-│   ├── 04_ml_models.ipynb
-│   └── 05_interpretability.ipynb
+│   ├── 04_uml_models.ipynb
+│   └── 05_sml_models.ipynb
+│   └── 06_interpretability.ipynb
 ├── src/
-│   ├── data.py
+│   ├── data_generation.py
+│   ├── evaluation.py
 │   ├── models.py
-│   ├── train.py
-│   └── utils.py
+│   └── plotting.py
 ├── figures/
 └── README.md
 ```
 
----
+- `run_experiment.py` — lightweight experiment driver
+- `configs/` — example experiment configurations (easy/medium/hard)
+- `src/` — core code: data generation, models, evaluation, plotting
+- `notebooks/` — exploration, figures, and interactive analyses
+- `data/`, `figures/` — generated artifacts (ignored in repo)
 
-## 12. Key Takeaway
+-------------------------------------------------------------------------------------
 
-This project emphasizes **methodological clarity**, **interpretability**, and **controlled validation** over domain-specific assumptions, demonstrating how machine learning models can uncover latent structure in complex time series data.
+## Quickstart
 
+1. Create and activate a virtual environment (recommended):
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+2. Run the main experiment script with a config (examples in `configs/`):
+
+```bash
+python run_experiment.py configs/medium.yaml
+```
+
+This prints Adjusted Rand Index (ARI) scores for each method.
+
+
+## Contact
+
+For questions or suggestions, open an issue or contact the repository owner.
