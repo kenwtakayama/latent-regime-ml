@@ -193,13 +193,12 @@ latent-regime-ml/
 │   ├── easy.yaml
 │   ├── medium.yaml
 │   ├── hard.yaml
-├── data/
 ├── notebooks/
 │   ├── 01_synthetic_generation.ipynb
 │   ├── 02_exploration.ipynb
 │   ├── 03_baselines.ipynb
 │   ├── 04_uml_models.ipynb
-│   └── 05_sml_models.ipynb
+│   ├── 05_sml_models.ipynb
 │   └── 06_interpretability.ipynb
 ├── src/
 │   ├── data_generation.py
@@ -207,6 +206,7 @@ latent-regime-ml/
 │   ├── models.py
 │   └── plotting.py
 ├── figures/
+│   └── ...
 └── README.md
 ```
 
@@ -214,7 +214,7 @@ latent-regime-ml/
 - `configs/` — example experiment configurations (easy/medium/hard)
 - `src/` — core code: data generation, models, evaluation, plotting
 - `notebooks/` — exploration, figures, and interactive analyses
-- `data/`, `figures/` — generated artifacts (ignored in repo)
+- `figures/` — generated artifacts
 
 -------------------------------------------------------------------------------------
 
