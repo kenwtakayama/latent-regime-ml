@@ -47,7 +47,7 @@ Ground-truth regime labels are retained *only* for evaluation.
 
 ---
 
-### 3.1 Principal Component Analysis (PCA)
+### Principal Component Analysis (PCA)
 
 We apply **Principal Component Analysis (PCA)** to extract low-dimensional latent factors from the observed features.
 
@@ -231,7 +231,7 @@ pip install -r requirements.txt
 2. Run the main experiment script with a config (examples in `configs/`):
 
 ```bash
-python run_experiment.py configs/medium.yaml
+python3 run_experiment.py configs/medium.yaml
 ```
 
 This prints Adjusted Rand Index (ARI) scores for each method.
